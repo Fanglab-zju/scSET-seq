@@ -271,7 +271,7 @@ p
 ggsave('all_cluster_orig.ident.svg',plot = p,device = 'svg',path = 'final_plot',dpi=600)
 
 ### rename cells 
-new.cluster.ids<-c("Mix","Naive","Prime","Mix","Mix")
+new.cluster.ids<-c("Mix","Proxi","Dista","Mix","Mix")
 names(new.cluster.ids) <- levels(wnt)
 wnt<-RenameIdents(wnt,new.cluster.ids)
 p<-DimPlot(wnt,reduction = "umap",label=F,pt.size = 4)
@@ -309,13 +309,13 @@ wnt@meta.data$Antibody<-Antibody
 ### show cell number in different clusters
 ### split wnt object into H3K27me3 exp object and H3K4me3 exp object
 Exp_k4<-subset(wnt,subset= Antibody=='H3K4me3')
-length(Exp_k4@active.ident[Exp_k4@active.ident=='Prime'])
-length(Exp_k4@active.ident[Exp_k4@active.ident=='Naive'])
+length(Exp_k4@active.ident[Exp_k4@active.ident=='Dista'])
+length(Exp_k4@active.ident[Exp_k4@active.ident=='Proxi'])
 length(Exp_k4@active.ident[Exp_k4@active.ident=='Mix'])
 
 Exp_k27<-subset(wnt,subset= Antibody=='H3K27me3')
-length(Exp_k27@active.ident[Exp_k27@active.ident=='Prime'])
-length(Exp_k27@active.ident[Exp_k27@active.ident=='Naive'])
+length(Exp_k27@active.ident[Exp_k27@active.ident=='Dista'])
+length(Exp_k27@active.ident[Exp_k27@active.ident=='Proxi'])
 length(Exp_k27@active.ident[Exp_k27@active.ident=='Mix'])
 
 ### rename cells_name for mapping with Epi_data
