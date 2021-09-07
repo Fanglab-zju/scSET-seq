@@ -60,9 +60,9 @@ changeEpiBC<-function(x){
 }
 
 #### mapping new metadata to cisTopic object (How to create cisTopic object: https://github.com/aertslab/cisTopic)
-Epi_k27<-changeChipBC(Epi_k27)
+Epi_k27<-changeEpiBC(Epi_k27)
 Epi_k27@count.matrix
-Epi_k4<-changeChipBC(Epi_k4)
+Epi_k4<-changeEpiBC(Epi_k4)
 Epi_k4@count.matrix
 ### subset cells by scSET-seq_Exp results
 subset_counts <- Epi_k27@count.matrix[,cell.k27]
@@ -101,8 +101,8 @@ wnt.markers <- as.data.frame(wnt.markers %>% group_by(cluster))
 wnt.markers<- as.data.frame(wnt.markers %>% group_by(cluster) %>% top_n(n =50, wt = avg_logFC))
 
 ### get top avg exp gene
-Prime<-subset(wnt.markers,subset=cluster=='Prime')$gene
-Naive<-subset(wnt.markers,subset=cluster=='Naive')$gene
+Dista<-subset(wnt.markers,subset=cluster=='Dista')$gene
+Proxi<-subset(wnt.markers,subset=cluster=='Proxi')$gene
 Mix<-subset(wnt.markers,subset=cluster=='Mix')$gene
 
 ##get peaks closet to tss (distacne >3000)
@@ -143,18 +143,18 @@ Epi_k27_density<-unique(Epi_k27_density)
 Epi_k4_density<-rbind(overlap,Epi_k4_density)
 Epi_k4_density<-unique(Epi_k4_density)
 ### get top exp peaks
-Prime.use<-Epi_k27_density[Epi_k27_density$SYMBOL %in% Prime,]
-Naive.use<-Epi_k27_density[Epi_k27_density$SYMBOL %in% Naive,]
+Dista.use<-Epi_k27_density[Epi_k27_density$SYMBOL %in% Dista,]
+Proxi.use<-Epi_k27_density[Epi_k27_density$SYMBOL %in% Proxi,]
 Mix.use<-Epi_k27_density[Epi_k27_density$SYMBOL %in% Mix,]
-write.table(Prime.use,'signature/Prime.k27peak',row.names = F,col.names = F,sep = '\t',quote = F)
-write.table(Naive.use,'signature/Naive.k27peak',row.names = F,col.names = F,sep = '\t',quote = F)
+write.table(Dista.use,'signature/Dista.k27peak',row.names = F,col.names = F,sep = '\t',quote = F)
+write.table(Proxi.use,'signature/Proxi.k27peak',row.names = F,col.names = F,sep = '\t',quote = F)
 write.table(Mix.use,'signature/Mix.k27peak',row.names = F,col.names = F,sep = '\t',quote = F)
 
-Prime.use<-Epi_k4_density[Epi_k4_density$SYMBOL %in% Prime,]
-Naive.use<-Epi_k4_density[Epi_k4_density$SYMBOL %in% Naive,]
+Dista.use<-Epi_k4_density[Epi_k4_density$SYMBOL %in% Dista,]
+Proxi.use<-Epi_k4_density[Epi_k4_density$SYMBOL %in% Proxi,]
 Mix.use<-Epi_k4_density[Epi_k4_density$SYMBOL %in% Mix,]
-write.table(Prime.use,'signature/Prime.k4peak',row.names = F,col.names = F,sep = '\t',quote = F)
-write.table(Naive.use,'signature/Naive.k4peak',row.names = F,col.names = F,sep = '\t',quote = F)
+write.table(Dista.use,'signature/Dista.k4peak',row.names = F,col.names = F,sep = '\t',quote = F)
+write.table(Proxi.use,'signature/Proxi.k4peak',row.names = F,col.names = F,sep = '\t',quote = F)
 write.table(Mix.use,'signature/Mix.k4peak',row.names = F,col.names = F,sep = '\t',quote = F)
 
 ### get Epi signals enrichments in each cell
@@ -189,7 +189,7 @@ saveRDS(signal,'scSET_Epi/k4signal.rds')
 
 ### mapping signals to use H3K4me3 data as example
 signal <- readRDS('sc-scSET_Epi/k4signal.rds')
-signal[,c('Mix','Naive','Prime')][signal[,c('Mix','Naive','Prime')]>0.3] =0.3 ### when do vlnplot and boxplot ,de annotation this, H3K27me3 signals use 0.5 as threshhold. 
+signal[,c('Mix','Proxi','Dista')][signal[,c('Mix','Proxi','Dista')]>0.3] =0.3 ### when do vlnplot and boxplot ,de annotation this, H3K27me3 signals use 0.5 as threshhold. 
 
 Exp_k4@meta.data$sample<-rownames(Exp_k4@meta.data)
 Exp_k4@meta.data<-merge(Exp_k4@meta.data,signal,by='sample')
@@ -206,8 +206,8 @@ umapdata<-merge(umapdata,signal,by='sample')
 DimPlot(Exp_k4,reduction = "umap",label=T,pt.size = 3)
 umap2
 
-## Prime 
-umap3<-ggplot(data=umapdata, aes(x=UMAP_1, y=UMAP_2, color=prime_no_beads))+geom_point(size=4)+
+## Dista 
+umap3<-ggplot(data=umapdata, aes(x=UMAP_1, y=UMAP_2, color=Dista))+geom_point(size=4)+
   scale_colour_gradientn(colours = c("grey","lightgoldenrod3","red"),breaks = c(0.1,0.2,0.3),limits=c(0,0.3))+
   theme_bw()+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank(),panel.border = element_blank())
@@ -218,9 +218,9 @@ umap3<-umap3+theme(legend.text = element_text(family = "Arial",size = 18,face = 
                    axis.text = element_text(family = "Arial",size = 20,face = 'bold',color = "black"),
                    axis.ticks.length = unit(.4,"lines"),
                    axis.ticks= element_line(size = 2))+ coord_fixed()
-ggsave('k4_prime.svg',plot = umap3,device = 'svg',path = 'final_plot',dpi=600)
-### Naive
-umap4<-ggplot(data=umapdata, aes(x=UMAP_1, y=UMAP_2, color=naive_on_beads))+geom_point(size=4)+
+ggsave('k4_Dista.svg',plot = umap3,device = 'svg',path = 'final_plot',dpi=600)
+### Proxi
+umap4<-ggplot(data=umapdata, aes(x=UMAP_1, y=UMAP_2, color=Proxi))+geom_point(size=4)+
   scale_colour_gradientn(colours = c("grey","lightgoldenrod3","red"),breaks = c(0.1,0.2,0.3),limits=c(0,0.3))+
   theme_bw()+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank(),panel.border = element_blank())
@@ -232,9 +232,9 @@ umap4<-umap4+theme(legend.text = element_text(family = "Arial",size = 18,face = 
                    axis.text = element_text(family = "Arial",size = 20,face = 'bold',color = "black"),
                    axis.ticks.length = unit(.4,"lines"),
                    axis.ticks= element_line(size = 2))+ coord_fixed()
-ggsave('k4_naive.svg',plot = umap4,device = 'svg',path = 'final_plot',dpi=600)
+ggsave('k4_Proxi.svg',plot = umap4,device = 'svg',path = 'final_plot',dpi=600)
 ### Mix
-umap5<-ggplot(data=umapdata, aes(x=UMAP_1, y=UMAP_2, color=mix))+geom_point(size=4)+
+umap5<-ggplot(data=umapdata, aes(x=UMAP_1, y=UMAP_2, color=Mix))+geom_point(size=4)+
   scale_colour_gradientn(colours = c("grey","lightgoldenrod3","red"),breaks = c(0.1,0.2,0.3),limits=c(0,0.3))+
   theme_bw()+
   theme(panel.grid.major=element_blank(),panel.grid.minor=element_blank(),panel.border = element_blank())
@@ -246,11 +246,11 @@ umap5<-umap5+theme(legend.text = element_text(family = "Arial",size = 18,face = 
                    axis.text = element_text(family = "Arial",size = 20,face = 'bold',color = "black"),
                    axis.ticks.length = unit(.4,"lines"),
                    axis.ticks= element_line(size = 2))+ coord_fixed()
-ggsave('k4_mix.svg',plot = umap5,device = 'svg',path = 'final_plot',dpi=600)
+ggsave('k4_Mix.svg',plot = umap5,device = 'svg',path = 'final_plot',dpi=600)
 
 ### draw vlnplot to quantify the signal distribution
 ## set comparison lists
-my_comparisons <- list(c("Mix", "Prime"), c("Mix", "Naive"), c("Prime", "Naive"))
+my_comparisons <- list(c("Mix", "Dista"), c("Mix", "Proxi"), c("Dista", "Proxi"))
 ## remove outliers
 idents<-data.frame(Idents(Exp_k4),names(Idents(Exp_k4)))
 names(idents)<-c('cluster_name','sample')
@@ -259,16 +259,16 @@ Exp_k4@meta.data<-merge(Exp_k4@meta.data,idents,by='sample')
 rownames(Exp_k4@meta.data)<-Exp_k4@meta.data$sample
 Exp_k4@meta.data<-Exp_k4@meta.data[,-1]
 Exp_k4@meta.data
-p<-ggplot(data = Exp_k4@meta.data,aes(x=cluster_name,y=mix,fill=cluster_name)) +  
+p<-ggplot(data = Exp_k4@meta.data,aes(x=cluster_name,y=Mix,fill=cluster_name)) +  
   geom_boxplot(size=2)  
 out=layer_data(p)['outliers']
 out=as.numeric(unlist(out))
 pdata <- Exp_k4@meta.data
-pdata <- pdata[! pdata$mix %in% out,]
+pdata <- pdata[! pdata$Mix %in% out,]
 pobj<-Exp_k4
 pobj@meta.data <- pdata
 ## draw vlnplots
-p<-VlnPlot(pobj,features = c('mix'),pt.size = 2,y.max = 0.75)+ 
+p<-VlnPlot(pobj,features = c('Mix'),pt.size = 2,y.max = 0.75)+ 
   stat_compare_means(comparisons = my_comparisons, label = "p.signif",
                      face='bold',size=14,hide.ns = T,
                      bracket.size = 2,method = 't.test',p.adjust.methods='BH',vjust = 0.5,
@@ -280,18 +280,18 @@ p<- p+theme(axis.line = element_line(colour = "black",size = 2,lineend = "square
             axis.text.x = element_text(angle = 0,hjust = 0.5),
             axis.ticks.length = unit(.4,"lines"),
             axis.ticks= element_line(size = 2))+guides(fill=F) + 
-  scale_x_discrete(labels = c('mix','naive','prime'))
+  scale_x_discrete(labels = c('Mix','Proxi','Dista'))
 p
-ggsave('k4_vln_mix.svg',plot = p,device = 'svg',path = 'final_plot',dpi=600,height = 10,width = 7)
-p<-ggplot(data = Exp_k4@meta.data,aes(x=cluster_name,y=naive_on_beads,fill=cluster_name)) +  
+ggsave('k4_vln_Mix.svg',plot = p,device = 'svg',path = 'final_plot',dpi=600,height = 10,width = 7)
+p<-ggplot(data = Exp_k4@meta.data,aes(x=cluster_name,y=Proxi,fill=cluster_name)) +  
   geom_boxplot(size=2)  
 out=layer_data(p)['outliers']
 out=as.numeric(unlist(out))
 pdata <- Exp_k4@meta.data
-pdata <- pdata[! pdata$naive_on_beads %in% out,]
+pdata <- pdata[! pdata$Proxi %in% out,]
 pobj<-Exp_k4
 pobj@meta.data <- pdata
-p<-VlnPlot(pobj,features = c('naive_on_beads'),pt.size = 2,y.max = 0.75)+ 
+p<-VlnPlot(pobj,features = c('Proxi'),pt.size = 2,y.max = 0.75)+ 
   stat_compare_means(comparisons = my_comparisons, label = "p.signif",
                      face='bold',size=14,hide.ns = T,
                      bracket.size = 2,method = 't.test',p.adjust.methods='BH',vjust = 0.5,
@@ -303,18 +303,18 @@ p<- p+theme(axis.line = element_line(colour = "black",size = 2,lineend = "square
             axis.text.x = element_text(angle = 0,hjust = 0.5),
             axis.ticks.length = unit(.4,"lines"),
             axis.ticks= element_line(size = 2))+guides(fill=F) + 
-  scale_x_discrete(labels = c('mix','naive','prime'))
+  scale_x_discrete(labels = c('Mix','Proxi','Dista'))
 p
-ggsave('k4_vln_naive.svg',plot = p,device = 'svg',path = 'final_plot',dpi=600,height = 10,width = 7)
-p<-ggplot(data = Exp_k4@meta.data,aes(x=cluster_name,y=prime_no_beads,fill=cluster_name)) +  
+ggsave('k4_vln_Proxi.svg',plot = p,device = 'svg',path = 'final_plot',dpi=600,height = 10,width = 7)
+p<-ggplot(data = Exp_k4@meta.data,aes(x=cluster_name,y=Dista,fill=cluster_name)) +  
   geom_boxplot(size=2)  
 out=layer_data(p)['outliers']
 out=as.numeric(unlist(out))
 pdata <- Exp_k4@meta.data
-pdata <- pdata[! pdata$prime_no_beads %in% out,]
+pdata <- pdata[! pdata$Dista %in% out,]
 pobj<-Exp_k4
 pobj@meta.data <- pdata
-p<-VlnPlot(Exp_k4,features = c('prime_no_beads'),pt.size = 2,y.max = 0.75)+ 
+p<-VlnPlot(Exp_k4,features = c('Dista'),pt.size = 2,y.max = 0.75)+ 
   stat_compare_means(comparisons = my_comparisons, label = "p.signif",
                      face='bold',size=14,hide.ns = T,
                      bracket.size = 2,method = 't.test',p.adjust.methods='BH',vjust = 0.5,
@@ -326,9 +326,9 @@ p<- p+theme(axis.line = element_line(colour = "black",size = 2,lineend = "square
             axis.text.x = element_text(angle = 0,hjust = 0.5),
             axis.ticks.length = unit(.4,"lines"),
             axis.ticks= element_line(size = 2))+guides(fill=F) + 
-  scale_x_discrete(labels = c('mix','naive','prime'))
+  scale_x_discrete(labels = c('Mix','Proxi','Dista'))
 p
-ggsave('k4_vln_prime.svg',plot = p,device = 'svg',path = 'final_plot',dpi=600,height = 10,width = 7)
+ggsave('k4_vln_Dista.svg',plot = p,device = 'svg',path = 'final_plot',dpi=600,height = 10,width = 7)
 
 
 
